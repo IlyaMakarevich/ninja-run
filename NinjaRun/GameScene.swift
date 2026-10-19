@@ -147,6 +147,12 @@ final class GameScene: BaseScene {
         addChild(restartButton)
 
         for b in [leftBtn, rightBtn, jumpBtn] { addChild(b) }
+        #if DEBUG
+        // Screenshot helper: launch with `-hideControls YES` for clean level shots.
+        if UserDefaults.standard.bool(forKey: "hideControls") {
+            for b in [leftBtn, rightBtn, jumpBtn] { b.isHidden = true }
+        }
+        #endif
 
         if index < L.hints.count {
             let hint = L.hints[index]

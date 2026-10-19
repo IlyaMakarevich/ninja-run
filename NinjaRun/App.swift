@@ -41,10 +41,20 @@ final class GameViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if skView.scene == nil, view.bounds.width > 0 {
-            let menu = MenuScene(size: view.bounds.size)
-            menu.scaleMode = .resizeFill
-            menu.insets = view.safeAreaInsets
-            skView.presentScene(menu)
+            var first: BaseScene = MenuScene(size: view.bounds.size)
+            #if DEBUG
+            // Screenshot helper: launch with `-screen levels` or `-screen level3`.
+            if let screen = UserDefaults.standard.string(forKey: "screen") {
+                if screen == "levels" {
+                    first = LevelSelectScene(size: view.bounds.size)
+                } else if let n = Int(screen.dropFirst(5)), (1...Levels.all.count).contains(n) {
+                    first = GameScene(size: view.bounds.size, level: n - 1)
+                }
+            }
+            #endif
+            first.scaleMode = .resizeFill
+            first.insets = view.safeAreaInsets
+            skView.presentScene(first)
         }
         (skView.scene as? BaseScene)?.insets = view.safeAreaInsets
     }
