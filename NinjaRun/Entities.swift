@@ -281,20 +281,24 @@ final class Drone: Entity {
     }
 }
 
-/// Gauss turret: locks on with a lagging aim, then fires an instant beam.
+/// Gauss turret: tracks the ninja with a lagging aim, then freezes the aim
+/// (blinking line + beep) for a moment before firing, so a quick step dodges it.
 final class GaussTurret: Entity {
     private var aim = CGPoint.zero
     private var charge = 0
     private var cooldown = 0
     private let line = SKShapeNode()
     private let barrel = SKShapeNode(rectOf: CGSize(width: 10, height: 3), cornerRadius: 1)
-    private let chargeTime = 60
+    private let trackTime = 60      // frames the aim follows the ninja
+    private let lockTime = 30       // frames the aim is frozen before the shot
+    private let trackSpeed: CGFloat = 1.5
+    private var chargeTime: Int { trackTime + lockTime }
 
     override init(at p: CGPoint) {
         super.init(at: p)
         line.strokeColor = Theme.beam
         line.lineWidth = 1
-        line.zPosition = -1
+        // Added first so it draws under the turret body (a negative zPosition would hide it behind the level).
         node.addChild(line)
         barrel.fillColor = Theme.ninja
         barrel.strokeColor = .clear
@@ -314,19 +318,24 @@ final class GaussTurret: Entity {
     override func update(_ g: GameScene) {
         if cooldown > 0 { cooldown -= 1; line.path = nil; return }
         let target = g.player.pos
+        let locked = charge >= trackTime
         let canSee = g.state == .playing && g.map.lineOfSight(pos, target)
         if charge == 0 {
             guard canSee else { line.path = nil; return }
             aim = target
             Sound.shared.play(.lockOn)
         }
-        if !canSee && charge > 0 {
+        if locked {
+            // Committed: the aim no longer moves, the shot comes after the lock delay.
+            charge += 1
+            if charge == trackTime + 1 { Sound.shared.play(.lockOn) }
+        } else if !canSee {
             charge -= 2
             if charge <= 0 { charge = 0; line.path = nil; return }
         } else {
             charge += 1
             let d = target - aim
-            aim += d.length > 2.0 ? d.normalized * 2.0 : d
+            aim += d.length > trackSpeed ? d.normalized * trackSpeed : d
         }
         let dir = (aim - pos).normalized
         barrel.position = dir * 6
@@ -341,14 +350,23 @@ final class GaussTurret: Entity {
         path.move(to: .zero)
         path.addLine(to: dir * len)
         line.path = path
-        line.alpha = 0.25 + 0.6 * CGFloat(charge) / CGFloat(chargeTime)
-        line.lineWidth = 0.5 + CGFloat(charge) / CGFloat(chargeTime)
+        if charge >= trackTime {
+            let blinkOn = (charge / 4) % 2 == 0
+            line.alpha = blinkOn ? 1 : 0.25
+            line.lineWidth = 3
+            line.glowWidth = blinkOn ? 2 : 0
+        } else {
+            let k = CGFloat(charge) / CGFloat(trackTime)
+            line.alpha = 0.35 + 0.45 * k
+            line.lineWidth = 1 + k
+            line.glowWidth = 0
+        }
     }
 
     private func fire(_ g: GameScene, dir: CGPoint) {
         Sound.shared.play(.gauss)
         charge = 0
-        cooldown = 45
+        cooldown = 90
         line.path = nil
         let len = g.map.raycast(from: pos, dir: dir, maxDist: 900)
         let end = pos + dir * len

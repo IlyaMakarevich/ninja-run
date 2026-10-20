@@ -72,7 +72,7 @@ Gold is optional, but every piece adds 2 seconds to the clock.
   </tr>
   <tr>
     <td valign="top"><img src="docs/screenshots/level07.png" alt="Level 7"><br><b>7. Drones</b><br><sub>Four floors, each patrolled by a zap drone. Jump over them and climb through the gaps to the top.</sub></td>
-    <td valign="top"><img src="docs/screenshots/level08.png" alt="Level 8"><br><b>8. In the Crosshairs</b><br><sub>A gauss turret watches the whole room. Its aim lags behind you, so keep moving and duck under the roofs.</sub></td>
+    <td valign="top"><img src="docs/screenshots/level08.png" alt="Level 8"><br><b>8. In the Crosshairs</b><br><sub>A gauss turret watches the whole room. Its aim lags behind you, then freezes and blinks for half a second before the shot: jump or step aside.</sub></td>
     <td valign="top"><img src="docs/screenshots/level09.png" alt="Level 9"><br><b>9. Rockets</b><br><sub>A launcher fires homing rockets. Break line of sight and lure them into the blocks.</sub></td>
   </tr>
   <tr>
